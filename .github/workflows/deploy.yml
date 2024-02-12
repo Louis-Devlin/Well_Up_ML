@@ -29,8 +29,6 @@ jobs:
           context: .
           push: true
           tags: gcr.io/well-up-ml/well-up:latest
-          build-args: |
-            HTTP_PORT=8080
 
       - name: Deploy to Cloud Run
         uses: google-github-actions/deploy-cloudrun@v1
