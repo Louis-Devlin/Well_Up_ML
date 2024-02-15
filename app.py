@@ -1,10 +1,17 @@
-import os
+
 from flask import Flask
-app = Flask(__name__)
+from well_up_ml.db.db import db
+from config import Config
 
-@app.route('/')
-def hello_world():
-    return 'Hello, World!'
 
-if __name__ == '__main__':
- app.run()
+def create_app():
+    app = Flask(__name__)
+    app.config.from_object(Config)
+    db.init_app(app)
+
+
+    with app.app_context():
+        from well_up_ml.routes import sentiment 
+        app.register_blueprint(sentiment.sentiment_bp)
+
+    return app
