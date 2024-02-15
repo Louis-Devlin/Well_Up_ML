@@ -76,8 +76,6 @@ def retrain():
 def seed_db():
     with current_app.app_context():
         from well_up_ml.db.models.sentiment import Sentiment
-       
-
         #Drop all the data from the DB
         Sentiment.query.delete()
         db.session.commit()
