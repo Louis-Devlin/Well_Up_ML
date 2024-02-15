@@ -27,7 +27,7 @@ rf_classifier.fit(X_train, y_train)
 @sentiment_bp.route('/sentiment', methods=["GET"])
 def sentiment():
     # Get input from body
-    userInput = request.json['message']
+    userInput = request.args.get('message')
     userInputVectorised = vectoriser.transform([userInput])
     prediction = rf_classifier.predict(userInputVectorised)
 
@@ -76,8 +76,6 @@ def retrain():
 def seed_db():
     with current_app.app_context():
         from well_up_ml.db.models.sentiment import Sentiment
-       
-
         #Drop all the data from the DB
         Sentiment.query.delete()
         db.session.commit()
