@@ -4,13 +4,16 @@ from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score, classification_report
-from well_up_ml.db.db import db  # Import db from db.db
+from well_up_ml import db
 from well_up_ml.db.models.sentiment import Sentiment
+from flask import current_app
+from well_up_ml.db.db import db
 sentiment_bp = Blueprint('sentiment', __name__)
 
-data = pd.read_csv('chat_dataset.csv')
-X = data['message']
-y = data['sentiment']
+data = Sentiment.query.all()
+
+X = [sentiment.sentiment_text for sentiment in data]
+y = [sentiment.sentiment_label for sentiment in data]
     # Vectorize the data
 vectoriser = CountVectorizer(ngram_range=(1, 2))
 X = vectoriser.fit_transform(X)
@@ -30,7 +33,7 @@ def sentiment():
 
     return jsonify({"predicted_sentiment": prediction[0]})
 
-@sentiment_bp.route('/sentiment',methods = ["GET"])
+@sentiment_bp.route('/sentiment',methods = ["POST"])
 def add_new_sentiment():
    # Get input from body 
     text = request.json['text']
@@ -38,6 +41,7 @@ def add_new_sentiment():
     new_sentiment = Sentiment(sentiment_text=text, sentiment_label=sentiment)
     db.session.add(new_sentiment)
     db.session.commit()
+    retrain()
     return jsonify({"message": "Sentiment added successfully"},201)
 
 
@@ -50,6 +54,7 @@ def sentiment_accuracy():
     return jsonify({"accuracy": accuracy, "report": report})
 @sentiment_bp.route('/sentiment/setup',methods=["POST"])
 def retrain():
+    
     #read from the DB 
     sentiments = Sentiment.query.all()
 
@@ -69,19 +74,23 @@ def retrain():
 
 @sentiment_bp.route('/sentiment/seed',methods=["POST"])
 def seed_db():
-    #Drop all the data from the DB
-    Sentiment.query.delete()
-    db.session.commit()
-    #Seed the DB with the original data
-    data = pd.read_csv('chat_dataset.csv')
-    message = data['message']
-    sentiment = data['sentiment']
-    for i in range(len(message)):
-        new_sentiment = Sentiment(sentiment_text=message[i], sentiment_label=sentiment[i])
-        db.session.add(new_sentiment)
+    with current_app.app_context():
+        from well_up_ml.db.models.sentiment import Sentiment
+       
 
-    db.session.commit()
+        #Drop all the data from the DB
+        Sentiment.query.delete()
+        db.session.commit()
+        #Seed the DB with the original data
+        data = pd.read_csv('chat_dataset.csv')
+        message = data['message']
+        sentiment = data['sentiment']
+        for i in range(len(message)):
+            new_sentiment = Sentiment(sentiment_text=message[i], sentiment_label=sentiment[i])
+            db.session.add(new_sentiment)
 
-    retrain()
-    return jsonify({"message": "DB seeded successfully"}, 200)
+        db.session.commit()
+
+        retrain()
+        return jsonify({"message": "DB seeded successfully"}, 200)
 
