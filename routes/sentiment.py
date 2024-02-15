@@ -27,7 +27,7 @@ rf_classifier.fit(X_train, y_train)
 @sentiment_bp.route('/sentiment', methods=["GET"])
 def sentiment():
     # Get input from body
-    userInput = request.json['message']
+    userInput = request.args.get('message')
     userInputVectorised = vectoriser.transform([userInput])
     prediction = rf_classifier.predict(userInputVectorised)
 
