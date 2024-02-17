@@ -35,14 +35,13 @@ def sentiment():
 
 @sentiment_bp.route('/sentiment',methods = ["POST"])
 def add_new_sentiment():
-   # Get input from body 
-    text = request.json['text']
-    sentiment = request.json['sentiment']
-    new_sentiment = Sentiment(sentiment_text=text, sentiment_label=sentiment)
-    db.session.add(new_sentiment)
-    db.session.commit()
-    retrain()
-    return jsonify({"message": "Sentiment added successfully"},201)
+   text = request.json['Text']
+   sentiment = request.json['Sentiment']
+   new_sentiment = Sentiment(sentiment_text=text, sentiment_label=sentiment)
+   db.session.add(new_sentiment)
+   db.session.commit()
+   retrain()
+   return jsonify({"message": "Sentiment added successfully"},201)
 
 
 @sentiment_bp.route('/sentiment/accuracy',methods=["GET"])
